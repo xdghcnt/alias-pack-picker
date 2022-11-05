@@ -1,4 +1,4 @@
-export const packs: {name: string; items: {  name: string; disabled?: boolean  }[]; disabled?: boolean}[] = [
+export const packs: {name: string; items: {  name: string; disabled?: boolean; picked?: boolean;  }[]; disabled?: boolean}[] = [
     {
         "name": "Это база!",
         "items": [

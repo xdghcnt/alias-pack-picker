@@ -1,4 +1,8 @@
 <template>
+  <div id="coin" :class="coinClass" @click="flipCoin">
+    <div class="side-a"></div>
+    <div class="side-b"></div>
+  </div>
   <table class="m-auto">
     <tr v-for="group in packGroups" :key="group.name"
         :class="{'opacity-30': group.disabled, 'line-through': group.disabled}">
@@ -7,16 +11,19 @@
         <span class="cursor-pointer" @click="group.disabled = !group.disabled">⌫</span>
       </td>
       <td v-for="item in group.items" :key="item" class="w-13rem"
-          :class="{'opacity-30': item.disabled, 'line-through': item.disabled, 'bg-black-alpha-90': item.disabled}">
+          :class="{'opacity-30': item.disabled, 'line-through': item.disabled,
+          'bg-black-alpha-90': item.disabled, 'bg-teal-800': item.picked }">
         {{item.name}}
-        <span class="cursor-pointer" @click="item.disabled = !item.disabled">⌫</span></td>
+        <span class="cursor-pointer" @click="item.disabled = !item.disabled">⌫</span>&nbsp;
+        <span class="cursor-pointer" @click="item.picked = !item.picked">☆</span>
+      </td>
     </tr>
   </table>
   <div v-if="!hafRemoved" @click="removeHalf" class="p-2 bg-bluegray-900 mt-3 m-auto cursor-pointer" style="display: table">-7</div>
 </template>
 
 <script lang="ts">
-import {defineComponent, ref} from 'vue';
+import {defineComponent, nextTick, ref} from 'vue';
 import {packs} from "@/components/packs";
 
 export default defineComponent({
@@ -43,10 +50,18 @@ export default defineComponent({
       packGroups.value = packGroups.value.filter((it) => array.includes(it));
       hafRemoved.value = true;
     };
+    const coinClass = ref('');
+    const flipCoin = async () => {
+      coinClass.value = '';
+      await nextTick();
+      coinClass.value = Math.random() <= 0.5 ? 'heads' : 'tails';
+    };
     return {
       packGroups,
       removeHalf,
       hafRemoved,
+      flipCoin,
+      coinClass,
     }
   }
 });
@@ -70,5 +85,76 @@ tr:nth-child(odd) {
 }
 tr:hover {
   background: var(--bluegray-900);
+}
+body {
+  padding-top: 50px;
+  background: #F7F7F7;
+  -webkit-perspective: 800px;
+}
+h1{
+  text-align: center;
+}
+#coin {
+  position: relative;
+  margin: 0 auto;
+  width: 100px;
+  height: 100px;
+  cursor: pointer;
+}
+#coin div {
+  width: 100%;
+  height: 100%;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  border-radius: 50%;
+  -webkit-box-shadow: inset 0 0 45px rgba(255,255,255,.3), 0 12px 20px -10px rgba(0,0,0,.4);
+  -moz-box-shadow: inset 0 0 45px rgba(255,255,255,.3), 0 12px 20px -10px rgba(0,0,0,.4);
+  box-shadow: inset 0 0 45px rgba(255,255,255,.3), 0 12px 20px -10px rgba(0,0,0,.4);
+}
+.side-a {
+  background: url(coin-r.png);
+}
+.side-b {
+  background: url(coin-a.png);
+}
+
+#coin {
+  transition: -webkit-transform 1s ease-in;
+  -webkit-transform-style: preserve-3d;
+  position: absolute;
+  left: 23px;
+  top: 23px;
+}
+#coin div {
+  position: absolute;
+  -webkit-backface-visibility: hidden;
+  background-size: contain;
+}
+.side-a {
+  z-index: 100;
+}
+.side-b {
+  -webkit-transform: rotateY(-180deg);
+}
+#coin.heads {
+  -webkit-animation: flipHeads 3s ease-out forwards;
+  -moz-animation: flipHeads 3s ease-out forwards;
+  -o-animation: flipHeads 3s ease-out forwards;
+  animation: flipHeads 3s ease-out forwards;
+}
+#coin.tails {
+  -webkit-animation: flipTails 3s ease-out forwards;
+  -moz-animation: flipTails 3s ease-out forwards;
+  -o-animation: flipTails 3s ease-out forwards;
+  animation: flipTails 3s ease-out forwards;
+}
+
+@-webkit-keyframes flipHeads {
+  from { -webkit-transform: rotateY(0); -moz-transform: rotateY(0); transform: rotateY(0); }
+  to { -webkit-transform: rotateY(1800deg); -moz-transform: rotateY(1800deg); transform: rotateY(1800deg); }
+}
+@-webkit-keyframes flipTails {
+  from { -webkit-transform: rotateY(0); -moz-transform: rotateY(0); transform: rotateY(0); }
+  to { -webkit-transform: rotateY(1980deg); -moz-transform: rotateY(1980deg); transform: rotateY(1980deg); }
 }
 </style>

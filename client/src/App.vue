@@ -23,6 +23,6 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: rgba(255, 255, 255, 0.87);
-  margin-top: 60px;
+  margin-top: 15px;
 }
 </style>
