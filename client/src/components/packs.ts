@@ -1,4 +1,9 @@
-export const packs: {name: string; items: {  name: string; disabled?: boolean; picked?: boolean;  }[]; disabled?: boolean}[] = [
+export type Item = {  name: string; disabled?: boolean;  };
+export const packs:
+    {
+        name: string;
+        items: Item[];
+        disabled?: boolean}[] = [
     {
         "name": "Это база!",
         "items": [

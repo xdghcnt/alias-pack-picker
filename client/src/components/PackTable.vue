@@ -12,10 +12,13 @@
       </td>
       <td v-for="item in group.items" :key="item" class="w-13rem"
           :class="{'opacity-30': item.disabled, 'line-through': item.disabled,
-          'bg-black-alpha-90': item.disabled, 'bg-teal-800': item.picked }">
+          'bg-black-alpha-90': item.disabled, 'bg-teal-800': pickedItems.includes(item) }">
+        <div v-if="pickedItems.includes(item)" class="circle">
+          {{pickedItems.indexOf(item) + 1}}
+        </div>
         {{item.name}}
         <span class="cursor-pointer" @click="item.disabled = !item.disabled">⌫</span>&nbsp;
-        <span class="cursor-pointer" @click="item.picked = !item.picked">☆</span>
+        <span class="cursor-pointer" @click="pickItem(item)">☆</span>
       </td>
     </tr>
   </table>
@@ -23,8 +26,8 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, nextTick, ref} from 'vue';
-import {packs} from "@/components/packs";
+import {defineComponent, ref} from 'vue';
+import {Item, packs} from "@/components/packs";
 
 export default defineComponent({
   name: 'PackTable',
@@ -51,10 +54,18 @@ export default defineComponent({
       hafRemoved.value = true;
     };
     const coinClass = ref('');
+    const pickedItems = ref<Item[]>([]);
+    const pickItem = (item: Item) => {
+      if (!pickedItems.value.includes(item))
+        pickedItems.value.push(item);
+      else
+        pickedItems.value.splice(pickedItems.value.indexOf(item), 1);
+    };
     const flipCoin = async () => {
       coinClass.value = '';
-      await nextTick();
-      coinClass.value = Math.random() <= 0.5 ? 'heads' : 'tails';
+      setTimeout(() => {
+        coinClass.value = Math.random() <= 0.5 ? 'heads' : 'tails';
+      }, 100);
     };
     return {
       packGroups,
@@ -62,6 +73,8 @@ export default defineComponent({
       hafRemoved,
       flipCoin,
       coinClass,
+      pickItem,
+      pickedItems,
     }
   }
 });
@@ -156,5 +169,14 @@ h1{
 @-webkit-keyframes flipTails {
   from { -webkit-transform: rotateY(0); -moz-transform: rotateY(0); transform: rotateY(0); }
   to { -webkit-transform: rotateY(1980deg); -moz-transform: rotateY(1980deg); transform: rotateY(1980deg); }
+}
+
+.circle {
+  display: inline-block;
+  background: var(--red-700);
+  border-radius: 50%;
+  text-align: center;
+  width: 21px;
+  line-height: 20px;
 }
 </style>
