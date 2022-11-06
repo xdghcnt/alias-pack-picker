@@ -1,9 +1,12 @@
-export type Item = {  name: string; disabled?: boolean;  };
-export const packs:
-    {
-        name: string;
-        items: Item[];
-        disabled?: boolean}[] = [
+export type Item = {  name: string; disabled?: boolean; };
+export type Group = {
+    name: string;
+    items: Item[];
+    disabled?: boolean;
+    picked?: boolean;
+};
+
+export const packs: Group[] = [
     {
         "name": "Это база!",
         "items": [

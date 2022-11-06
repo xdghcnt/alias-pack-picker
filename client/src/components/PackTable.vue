@@ -8,17 +8,17 @@
         :class="{'opacity-30': group.disabled, 'line-through': group.disabled}">
       <td class="bg-gray-800" >
         {{group.name}}
-        <span class="cursor-pointer" @click="group.disabled = !group.disabled">⌫</span>
+        <span v-if="!group.picked" class="cursor-pointer" @click="group.disabled = !group.disabled">⌫&nbsp;</span>
+        <span v-if="!group.disabled" class="cursor-pointer" @click="pickGroup(group)">☆</span>
       </td>
       <td v-for="item in group.items" :key="item" class="w-13rem"
-          :class="{'opacity-30': item.disabled, 'line-through': item.disabled,
-          'bg-black-alpha-90': item.disabled, 'bg-teal-800': pickedItems.includes(item) }">
+          :class="{'opacity-30': item.disabled, 'line-through': item.disabled, 'bg-teal-800': group.picked,
+          'bg-black-alpha-90': item.disabled }">
         <div v-if="pickedItems.includes(item)" class="circle">
           {{pickedItems.indexOf(item) + 1}}
         </div>
         {{item.name}}
-        <span class="cursor-pointer" @click="item.disabled = !item.disabled">⌫</span>&nbsp;
-        <span class="cursor-pointer" @click="pickItem(item)">☆</span>
+        <span v-if="group.picked && !pickedItems.includes(item)" class="cursor-pointer" @click="banItem(group, item)">⌫</span>
       </td>
     </tr>
   </table>
@@ -27,7 +27,7 @@
 
 <script lang="ts">
 import {defineComponent, ref} from 'vue';
-import {Item, packs} from "@/components/packs";
+import {Group, Item, packs} from "@/components/packs";
 
 export default defineComponent({
   name: 'PackTable',
@@ -55,6 +55,19 @@ export default defineComponent({
     };
     const coinClass = ref('');
     const pickedItems = ref<Item[]>([]);
+    const pickGroup = (group: Group) => {
+      group.picked = !group.picked;
+    };
+    const banItem = (group: Group, item: Item) => {
+      item.disabled = !item.disabled;
+      if (group.items.filter((it) => it.disabled).length === 2)
+        pickItem(group.items.find((it) => !it.disabled)!);
+      else {
+        const pickedItem = group.items.find((it) => pickedItems.value.includes(it));
+        if (pickedItem)
+            pickItem(pickedItem);
+      }
+    };
     const pickItem = (item: Item) => {
       if (!pickedItems.value.includes(item))
         pickedItems.value.push(item);
@@ -75,6 +88,8 @@ export default defineComponent({
       coinClass,
       pickItem,
       pickedItems,
+      banItem,
+      pickGroup,
     }
   }
 });
