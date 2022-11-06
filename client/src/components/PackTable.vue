@@ -1,15 +1,22 @@
 <template>
-  <div id="coin" :class="coinClass" @click="flipCoin">
+  <div id="coin" :class="coinClass">
     <div class="side-a"></div>
     <div class="side-b"></div>
+  </div>
+  <div class="text-center mb-3">
+    {{messageInd + 1}}) {{messages[messageInd]}}
+    <span v-if="messageInd === 1">
+      <span class="px-2 bg-bluegray-900 cursor-pointer" @click="pickCoin('tails')">Орёл</span>&nbsp;
+      <span class="px-2 bg-bluegray-900 cursor-pointer" @click="pickCoin('heads')">Решка</span>
+    </span>
   </div>
   <table class="m-auto">
     <tr v-for="group in packGroups" :key="group.name"
         :class="{'opacity-30': group.disabled, 'line-through': group.disabled}">
       <td class="bg-gray-800" >
         {{group.name}}
-        <span v-if="!group.picked" class="cursor-pointer" @click="group.disabled = !group.disabled">⌫&nbsp;</span>
-        <span v-if="!group.disabled" class="cursor-pointer" @click="pickGroup(group)">☆</span>
+        <span v-if="!group.picked && !group.disabled && [3,4,11,12].includes(messageInd)" class="cursor-pointer" @click="banGroup(group); messageInd++;">⌫&nbsp;</span>
+        <span v-if="!group.picked && !group.disabled && [5,8].includes(messageInd)" class="cursor-pointer" @click="pickGroup(group); messageInd++">☆</span>
       </td>
       <td v-for="item in group.items" :key="item" class="w-13rem"
           :class="{'opacity-30': item.disabled, 'line-through': item.disabled, 'bg-teal-800': group.picked,
@@ -18,7 +25,7 @@
           {{pickedItems.indexOf(item) + 1}}
         </div>
         {{item.name}}
-        <span v-if="group.picked && !pickedItems.includes(item)" class="cursor-pointer" @click="banItem(group, item)">⌫</span>
+        <span v-if="group.picked && !pickedItems.includes(item)" class="cursor-pointer" @click="banItem(group, item); messageInd++">⌫</span>
       </td>
     </tr>
   </table>
@@ -26,7 +33,7 @@
 </template>
 
 <script lang="ts">
-import {defineComponent, ref} from 'vue';
+import {computed, defineComponent, ref} from 'vue';
 import {Group, Item, packs} from "@/components/packs";
 
 export default defineComponent({
@@ -35,6 +42,27 @@ export default defineComponent({
   },
 
   setup() {
+    const winCoinTeam = ref<1 | 2>();
+    const loseCoinTeam = ref<1 | 2>();
+    const messageInd = ref(0);
+    const messages = computed(() => [
+        `Сделайте -7`,
+        `Команда на 1 слоте: орёл или решка?`,
+        `...`,
+        `Команда на ${winCoinTeam.value} слоте банит строку`,
+        `Команда на ${loseCoinTeam.value} слоте банит строку`,
+        `Команда на ${winCoinTeam.value} слоте пикает строку`,
+        `Команда на ${winCoinTeam.value} слоте банит столбец`,
+        `Команда на ${loseCoinTeam.value} слоте банит столбец`,
+        `Команда на ${loseCoinTeam.value} слоте пикает строку`,
+        `Команда на ${loseCoinTeam.value} слоте банит столбец`,
+        `Команда на ${winCoinTeam.value} слоте банит столбец`,
+        `Команда на ${winCoinTeam.value} слоте банит строку`,
+        `Команда на ${loseCoinTeam.value} слоте банит строку`,
+        `Команда на ${winCoinTeam.value} слоте банит столбец`,
+        `Команда на ${loseCoinTeam.value} слоте банит столбец`,
+        `Всё`,
+    ])
     function shuffle<T>(array: T[]): T[] {
       let currentIndex = array.length,  randomIndex;
       while (currentIndex != 0) {
@@ -49,6 +77,7 @@ export default defineComponent({
     const packGroups = ref(packs);
     const hafRemoved = ref(false);
     const removeHalf = () => {
+      messageInd.value++;
       const array = shuffle([...packGroups.value]).splice(0, 7);
       packGroups.value = packGroups.value.filter((it) => array.includes(it));
       hafRemoved.value = true;
@@ -57,6 +86,12 @@ export default defineComponent({
     const pickedItems = ref<Item[]>([]);
     const pickGroup = (group: Group) => {
       group.picked = !group.picked;
+    };
+    const banGroup = (group: Group) => {
+      group.disabled = !group.disabled
+      const lastGroups = packGroups.value.filter((it) => !it.disabled && !it.picked);
+      if (lastGroups.length === 1)
+        lastGroups[0].picked = true;
     };
     const banItem = (group: Group, item: Item) => {
       item.disabled = !item.disabled;
@@ -74,10 +109,19 @@ export default defineComponent({
       else
         pickedItems.value.splice(pickedItems.value.indexOf(item), 1);
     };
+    let team1Picked: 'heads' | 'tails';
+    const pickCoin = (side: 'heads' | 'tails') => {
+      team1Picked = side;
+      void flipCoin();
+    };
     const flipCoin = async () => {
       coinClass.value = '';
       setTimeout(() => {
         coinClass.value = Math.random() <= 0.5 ? 'heads' : 'tails';
+        winCoinTeam.value = team1Picked === coinClass.value ? 1 : 2;
+        loseCoinTeam.value = team1Picked === coinClass.value ? 2 : 1;
+        messageInd.value++;
+        setTimeout(() => messageInd.value++, 3000);
       }, 100);
     };
     return {
@@ -90,6 +134,10 @@ export default defineComponent({
       pickedItems,
       banItem,
       pickGroup,
+      messageInd,
+      messages,
+      pickCoin,
+      banGroup,
     }
   }
 });
@@ -127,7 +175,6 @@ h1{
   margin: 0 auto;
   width: 100px;
   height: 100px;
-  cursor: pointer;
 }
 #coin div {
   width: 100%;
